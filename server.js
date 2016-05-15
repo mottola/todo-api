@@ -44,13 +44,27 @@ app.post('/todos', function (req, res) {
   if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
     return res.status(400).send();
   }
-
   // sanitize unnecessary spaces
   body.description = body.description.trim();
 
   body.id = todoNextId++;
   todos.push(body);
   res.json(body);
+});
+
+// DELETE /todos/:id
+app.delete('/todos/:id', function (req, res) {
+  // make sure integer
+  var todoId = parseInt(req.params.id, 10);
+  // find and store todo to be deleted using underscore findWhere
+  var matchedTodo= _.findWhere(todos, {id: todoId});
+
+  if(!matchedTodo) {
+    res.status(404).json({'error': 'no todo found with that id'});
+  } else {
+    todos = _.without(todos, matchedTodo);
+    res.json(matchedTodo);
+  }
 });
 
 app.listen(PORT, function() {
