@@ -20,10 +20,19 @@ app.get('/todos', function(req, res) {
     var filteredTodos = todos;
     // if has property && completed === 'true'
     // _.where
-    if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-      filteredTodos = _.where(filteredTodos, {completed: true});
-    } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false'){
-      filteredTodos = _.where(filteredTodos, {completed: false});
+    if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+        filteredTodos = _.where(filteredTodos, {
+            completed: true
+        });
+    } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+        filteredTodos = _.where(filteredTodos, {
+            completed: false
+        });
+    }
+    if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+      filteredTodos = _.filter(filteredTodos, function (todo) {
+        return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+      });
     }
 
     //convert to JSON
@@ -36,7 +45,9 @@ app.get('/todos/:id', function(req, res) {
     var todoId = parseInt(req.params.id, 10);
 
     // user underscore to search through todo
-    var matchedTodo = _.findWhere(todos, {id: todoId});
+    var matchedTodo = _.findWhere(todos, {
+        id: todoId
+    });
 
     if (matchedTodo) {
         res.json(matchedTodo);
@@ -46,66 +57,72 @@ app.get('/todos/:id', function(req, res) {
 });
 
 // POST - add a new todo to our array -CREATE in CRUD
-app.post('/todos', function (req, res) {
-  // get rid of undesired input
-  var body = _.pick(req.body, 'description', 'completed');
+app.post('/todos', function(req, res) {
+    // get rid of undesired input
+    var body = _.pick(req.body, 'description', 'completed');
 
-  // use underscore isBoolean and isString for input validation
-  if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-    return res.status(400).send();
-  }
-  // sanitize unnecessary spaces
-  body.description = body.description.trim();
+    // use underscore isBoolean and isString for input validation
+    if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+        return res.status(400).send();
+    }
+    // sanitize unnecessary spaces
+    body.description = body.description.trim();
 
-  body.id = todoNextId++;
-  todos.push(body);
-  res.json(body);
+    body.id = todoNextId++;
+    todos.push(body);
+    res.json(body);
 });
 
 // DELETE /todos/:id - DELETE in CRUD
-app.delete('/todos/:id', function (req, res) {
-  // make sure integer
-  var todoId = parseInt(req.params.id, 10);
-  // find and store todo to be deleted using underscore findWhere
-  var matchedTodo= _.findWhere(todos, {id: todoId});
+app.delete('/todos/:id', function(req, res) {
+    // make sure integer
+    var todoId = parseInt(req.params.id, 10);
+    // find and store todo to be deleted using underscore findWhere
+    var matchedTodo = _.findWhere(todos, {
+        id: todoId
+    });
 
-  if(!matchedTodo) {
-    res.status(404).json({'error': 'no todo found with that id'});
-  } else {
-    todos = _.without(todos, matchedTodo);
-    res.json(matchedTodo);
-  }
+    if (!matchedTodo) {
+        res.status(404).json({
+            'error': 'no todo found with that id'
+        });
+    } else {
+        todos = _.without(todos, matchedTodo);
+        res.json(matchedTodo);
+    }
 });
 
 // PUT /todos/:id  - UPDATE in CRUD
 app.put('/todos/:id', function(req, res) {
-  var todoId = parseInt(req.params.id, 10);
-  var matchedTodo= _.findWhere(todos, {id: todoId});
+    var todoId = parseInt(req.params.id, 10);
+    var matchedTodo = _.findWhere(todos, {
+        id: todoId
+    });
 
-  var body = _.pick(req.body, 'description', 'completed');
-  var validAttributes = {};
+    var body = _.pick(req.body, 'description', 'completed');
+    var validAttributes = {};
 
-  if (!matchedTodo) {
-    return res.status(404).send();
-  }
+    if (!matchedTodo) {
+        return res.status(404).send();
+    }
 
-  // validate boolean with hasOwnProperty
-  if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-    validAttributes.completed = body.completed;
-  } else if (body.hasOwnProperty('completed')) {
-    return res.status(400).send();
-  }
+    // validate boolean with hasOwnProperty
+    if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+        validAttributes.completed = body.completed;
+    } else if (body.hasOwnProperty('completed')) {
+        return res.status(400).send();
+    }
 
-  // validate description with hasOwnProperty
-  if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
-    validAttributes.description = body.description;
-  } else if (body.hasOwnProperty('description')) {
-    return res.status(404).send();
-  }
+    // validate description with hasOwnProperty
+    if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+        validAttributes.description = body.description;
+    } else if (body.hasOwnProperty('description')) {
+        return res.status(404).send();
+    }
 
-  // use underscore extend method to update properties
-  _.extend(matchedTodo, validAttributes);
-  res.json(matchedTodo);
+    // use underscore extend method to update properties
+    _.extend(matchedTodo, validAttributes);
+    res.json(matchedTodo);
 });
 
 app.listen(PORT, function() {
