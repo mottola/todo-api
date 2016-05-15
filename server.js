@@ -16,8 +16,18 @@ app.get('/', function(req, res) {
 
 // GET / READ in CRUD
 app.get('/todos', function(req, res) {
+    var queryParams = req.query;
+    var filteredTodos = todos;
+    // if has property && completed === 'true'
+    // _.where
+    if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+      filteredTodos = _.where(filteredTodos, {completed: true});
+    } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false'){
+      filteredTodos = _.where(filteredTodos, {completed: false});
+    }
+
     //convert to JSON
-    res.json(todos);
+    res.json(filteredTodos);
 });
 
 // GET /todos/:id  to show a specific todos
