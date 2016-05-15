@@ -1,21 +1,12 @@
 var express = require('express');
+var bodyParser = require('body-parser');
 var app = express();
 var PORT = process.env.PORT || 3000;
+var todos = [];
+var todoNextId = 1;
 
-// array to store data, once we use a database, this won't be necessary
-var todos = [{
-    id: 1,
-    description: 'Study node.js',
-    completed: false
-}, {
-    id: 2,
-    description: 'Go to WholeFoods',
-    completed: false
-}, {
-    id: 3,
-    description: 'Help Anna with Code',
-    completed: true
-}];
+app.use(bodyParser.json());
+
 
 // root/home route
 app.get('/', function(req, res) {
@@ -46,6 +37,19 @@ app.get('/todos/:id', function(req, res) {
     } else {
         res.status(404).send();
     }
+});
+
+// POST
+app.post('/todos', function (req, res) {
+  var body = req.body;
+
+  body.id = todoNextId++;
+
+  todos.push(body);
+
+  console.log('description');
+
+  res.json(body);
 });
 
 app.listen(PORT, function() {
