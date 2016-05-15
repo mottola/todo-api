@@ -14,7 +14,7 @@ app.get('/', function(req, res) {
     res.send('Todo API root');
 });
 
-// GET /todos to show our todos
+// GET / READ in CRUD
 app.get('/todos', function(req, res) {
     //convert to JSON
     res.json(todos);
@@ -35,7 +35,7 @@ app.get('/todos/:id', function(req, res) {
     }
 });
 
-// POST - add a new todo to our array
+// POST - add a new todo to our array -CREATE in CRUD
 app.post('/todos', function (req, res) {
   // get rid of undesired input
   var body = _.pick(req.body, 'description', 'completed');
@@ -52,7 +52,7 @@ app.post('/todos', function (req, res) {
   res.json(body);
 });
 
-// DELETE /todos/:id
+// DELETE /todos/:id - DELETE in CRUD
 app.delete('/todos/:id', function (req, res) {
   // make sure integer
   var todoId = parseInt(req.params.id, 10);
@@ -65,6 +65,37 @@ app.delete('/todos/:id', function (req, res) {
     todos = _.without(todos, matchedTodo);
     res.json(matchedTodo);
   }
+});
+
+// PUT /todos/:id  - UPDATE in CRUD
+app.put('/todos/:id', function(req, res) {
+  var todoId = parseInt(req.params.id, 10);
+  var matchedTodo= _.findWhere(todos, {id: todoId});
+
+  var body = _.pick(req.body, 'description', 'completed');
+  var validAttributes = {};
+
+  if (!matchedTodo) {
+    return res.status(404).send();
+  }
+
+  // validate boolean with hasOwnProperty
+  if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+    validAttributes.completed = body.completed;
+  } else if (body.hasOwnProperty('completed')) {
+    return res.status(400).send();
+  }
+
+  // validate description with hasOwnProperty
+  if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+    validAttributes.description = body.description;
+  } else if (body.hasOwnProperty('description')) {
+    return res.status(404).send();
+  }
+
+  // use underscore extend method to update properties
+  _.extend(matchedTodo, validAttributes);
+  res.json(matchedTodo);
 });
 
 app.listen(PORT, function() {
